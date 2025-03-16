@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSurf - Phishing Detection</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      min-height: 100vh;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      max-width: 800px;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 50px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 15px 35px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .result {
+      display: none;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      color: #333;
+      margin-top: 20px;
+    }
+    .loading {
+      display: none;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ffeb3b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ SafeSurf</h1>
+    <p>AI-Powered Phishing Detection System</p>
+    <input type="text" id="urlInput" placeholder="Enter website URL (e.g. https://example.com)">
+    <button onclick="analyzeURL()">Analyze Now</button>
+    <p id="loading" class="loading">🔍 Analyzing URL, please wait...</p>
+    <div id="resultCard" class="result">
+      <h2 id="statusText"></h2>
+      <p id="statusDetails"></p>
+    </div>
+  </div>
+
+  <script>
+    const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(\/[a-zA-Z0-9\-._~:\/?#[\]@!$&'()*+,;=]*)?$/;
+    async function analyzeURL() {
+    const urlInput = document.getElementById("urlInput").value;
+    const resultCard = document.getElementById("resultCard");
+    const statusText = document.getElementById("statusText");
+    const statusDetails = document.getElementById("statusDetails");
+    const loading = document.getElementById("loading");
+
+    if (!urlPattern.test(urlInput.trim())) {
+      alert("Please enter a valid website URL.");
+      return;
+    }
+
+    resultCard.style.display = "none";
+    loading.style.display = "block";
+    statusText.textContent = "Analyzing...";
+    statusDetails.textContent = "Checking for potential threats...";
+    statusText.style.color = "#ff9800";
+
+    try {
+      const response = await fetch(`http://localhost:4500/check-url?url=${encodeURIComponent(urlInput)}`);
+      const data = await response.json();
+      console.log("Response from server:", data);  // Debugging line
+      loading.style.display = "none";
+      resultCard.style.display = "block";
+
+      if (response.status === 200) {
+        if (data.matches) {
+          statusText.textContent = "⚠️ Potential Phishing Risk!";
+          statusText.style.color = "#f44336";
+          statusDetails.textContent = `Detected from ${data.source}`;
+        } else {
+          statusText.textContent = "✅ Likely Safe";
+          statusText.style.color = "#4CAF50";
+          statusDetails.textContent = "No phishing threats detected.";
+        }
+      } else {
+        throw new Error(data.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      statusText.textContent = "❌ Error connecting to server";
+      statusText.style.color = "#4CAF50";
+      statusDetails.textContent = "Check connection with server";
+      loading.style.display = "none";
+    }
+  }
+  </script>
+</body>
+</html>
+
+<!-- venv\Scripts\activate  -->
